@@ -10,6 +10,7 @@ class Game {
         Fruits fruit;
         Clock clock;
         Text finalText;
+        Text scoreText;
         Font font;
         int score = 0;
         float moveDelay = 0.15f;
@@ -21,8 +22,13 @@ class Game {
                 float y = 30 + (rand() % 19) * 60;
                 ch = snake.CheckPosFruit(x, y);
                 if (ch == 0) {
-                    fruit.AddFruit(x, y);
+                    if (score == 14) {
+                        fruit.AddGoldFruit(x, y);
+                    } else {
+                        fruit.AddFruit(x, y);
+                    }
                 }
+
             }
         }
         void Action(RenderWindow& window) {
@@ -43,15 +49,18 @@ class Game {
                     break;
                 case 1:
                     sounds.playEat();
-                    SpawnFruits();
                     score++;
-                    if (score == 897) {
+                    scoreText.setString("Score: " + std::to_string(score));
+                    if (score == 15) {
                         finalText.setFillColor(Color::Green);
                         finalText.setString("You win!!!");
+                        sounds.playWin();
                         return false;
                     }
+                    SpawnFruits();
                     break;
                 case 2:
+                    sounds.playLost();
                     alive = false;
                     break;
             }
@@ -75,26 +84,33 @@ class Game {
             }
         }
         void Rendering(RenderWindow& window, bool alive) {
-            Color background{37, 75, 4};
+            Color background{255, 255, 172};
             window.clear(background);
             if (!alive) {
-                sounds.playLost();
+                sounds.stopMusic();
                 window.draw(finalText);
                 window.display();
                 waitForEnter(window);
                 window.close();
             } else {
                 snake.Draw(window);
-                fruit.Draw(window);
+                window.draw(scoreText);
+                if (score != 14) fruit.Draw(window);
+                else fruit.Draw_Gold(window);
                 window.display();
             }
         }
     public:
-        Game () : finalText(font) {
+        Game () : finalText(font), scoreText(font) {
             if (!font.openFromFile("/usr/share/fonts/TTF/DejaVuSans.ttf")) {
                 if (!font.openFromFile("/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf")) {
                 }
             }
+            scoreText.setFont(font);
+            scoreText.setCharacterSize(20);
+            scoreText.setFillColor(Color::White);
+            scoreText.setPosition({10.f, 10.f});
+            scoreText.setString("Score: 0");
             finalText.setFont(font);
             finalText.setCharacterSize(100);
             finalText.setFillColor(Color::Red);

@@ -114,7 +114,9 @@ class Snake {
         segment *Tail;
         float offset = 30.f;
         int getSigmentType(segment* curr, segment* prev, segment* next) {
-            if (next == nullptr || prev == nullptr) return 0;
+            if (curr == Tail) return 3;
+            if (next == nullptr) return 3;
+            if (prev == nullptr) return 0;
             int nextVec = next->vec;
             int currVec = curr->vec;
 
@@ -227,6 +229,7 @@ class Snake {
     }
     void Draw(RenderWindow& window) {
         if (Head == nullptr) return;
+        if (!Tail) std::cout << "Хвост не существует";
         segment* curr = Head;
         curr->sprite_head.setOrigin({8.f, 8.f});
         curr->sprite_head.setPosition({curr->pos_s.x + 8.f, curr->pos_s.y + 8.f});
@@ -235,7 +238,7 @@ class Snake {
         window.draw(curr->sprite_head);
         segment * prev = Head;
         curr = curr->next;
-        while(curr) {
+        while(curr->next) {
             segment* next = curr->next;
             int type = getSigmentType(curr, prev, next);
             Sprite* SpriteToDraw;
@@ -252,27 +255,59 @@ class Snake {
                     SpriteToDraw = &curr->angle_right;
                     SpriteToDraw->setRotation(sf::degrees(curr->vec * 90.f + 180));
                     break;
-                case 3:
-                    SpriteToDraw = &curr->sprite_body;
-                    SpriteToDraw->setRotation(sf::degrees(curr->vec * 90.f));
+                case 3:{
+                    std::cout << "Отрисовка хвоста";
+                    static sf::Texture tailTexture;
+                    static bool loaded = false;
+                    if (!loaded) {
+                        if (!tailTexture.loadFromFile("textures/tail.png")) {
+                            std::cout << "❌ Ошибка: tail.png не найден!" << std::endl;
+                        } else {
+                            std::cout << "✅ Хвост загружен!" << std::endl;
+                        }
+                        loaded = true;
+                    }
+                    sf::Sprite tailSprite(tailTexture);
+                    tailSprite.setScale({3.75f, 3.75f});
+                    tailSprite.setOrigin({8.f, 8.f});
+                    tailSprite.setPosition({Tail->pos_s.x + 8.f, Tail->pos_s.y + 8.f});
+                    tailSprite.setRotation(sf::degrees(Tail->vec * 90.f));
+                    window.draw(tailSprite);
                     break;
+                    prev = curr;
+                    curr = curr->next;
+                    continue;
+                }
                 default:
                     SpriteToDraw = &curr->sprite_body;
                     SpriteToDraw->setRotation(sf::degrees(curr->vec * 90.f));
                     break;
             }
-            SpriteToDraw->setOrigin({8.f, 8.f});
-
-            SpriteToDraw->setPosition({curr->pos_s.x + 8.f, curr->pos_s.y + 8.f});
-            window.draw(*SpriteToDraw);
+            if (SpriteToDraw != nullptr) {
+                SpriteToDraw->setOrigin({8.f, 8.f});
+                SpriteToDraw->setPosition({curr->pos_s.x + 8.f, curr->pos_s.y + 8.f});
+                window.draw(*SpriteToDraw);
+            }
             prev = curr;
             curr = curr->next;
         }
-        /*if (Tail != nullptr) {
-            Tail->tail.setOrigin({8.f, 8.f});
-            Tail->tail.setPosition({Tail->pos_s.x + 8.f, Tail->pos_s.y + 8.f});
-            Tail->tail.setRotation(degrees(Tail->vec * 90.f));
-            window.draw(Tail->tail);
-        }*/
+        if (Tail != nullptr) {
+            static sf::Texture tailTexture;
+            static bool loaded = false;
+            if (!loaded) {
+                if (!tailTexture.loadFromFile("textures/tail.png")) {
+                    std::cout << "❌ Ошибка: tail.png не найден!" << std::endl;
+                } else {
+                    std::cout << "✅ Хвост загружен!" << std::endl;
+                }
+                loaded = true;
+            }
+            sf::Sprite tailSprite(tailTexture);
+            tailSprite.setScale({3.75f, 3.75f});
+            tailSprite.setOrigin({8.f, 8.f});
+            tailSprite.setPosition({Tail->pos_s.x + 8.f, Tail->pos_s.y + 8.f});
+            tailSprite.setRotation(sf::degrees(Tail->vec * 90.f));
+            window.draw(tailSprite);
+        }
     }
 };
